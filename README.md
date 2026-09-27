@@ -1,131 +1,107 @@
-# 🍋 Project Lenta — Headless CMS & Chronological Data Hub
+# 🍋 Lemon Curator — AI Multi-Agent Editorial & Knowledge Synthesis Platform
 
-Project Lenta is a high-performance headless CMS and chronological data hub designed as a **single source of truth** for time-based records (events, news, releases, milestones). The system is built to power three distinct client applications:
-1. **Admin CMS** (React + Ant Design + TanStack Query)
-2. **React Calendar App** (Consuming range queries on `startDate`/`endDate`)
-3. **Obsidian Local Sync Plugin** (Offline-first delta synchronization via `updatedAt` and non-destructive `deletedAt` soft deletes)
+**Lemon Curator** is the intelligence and curation engine of the Lemon ecosystem. It unites multi-agent AI workflows, specialized editorial curators, breaking news ingestion, resonance scoring, and cross-analysis synthesis to turn rapid information streams into high-density structured knowledge.
 
----
-
-## 🏛️ Architectural Constraints ("Load-Bearing Walls")
-
-1. **Sync-Ready**: All models include `updatedAt` and `deletedAt` (Soft Deletes) to support offline-first local synchronization without physical data loss.
-2. **Content Agnostic**: The `description` field in the Note model stores raw Markdown with live preview in the Admin CMS.
-3. **Hierarchical Taxonomy**: Materialized path classification (`TaxonomyNode.path`) converted to PostgreSQL's native `ltree` type via a custom Prisma migration step with GiST indexing.
-4. **Range & Sync Indexes**: Composite index on `[startDate, endDate]` for calendar queries and index on `[updatedAt]` for delta sync pulls.
+Repository: [git@github.com:The-Lemon-Team/lemon-curator.git](https://github.com/The-Lemon-Team/lemon-curator)
 
 ---
 
-## 🛠️ Tech Stack
+## 🎯 Core Mission & Vision
 
-- **Backend**: Nest.js 10, TypeScript, Prisma ORM 6, PostgreSQL 16, Swagger / OpenAPI
-- **Frontend**: React 18, Ant Design 5, TanStack Query v5, React Router v7, Tailwind CSS, Lucide React
-- **Database**: PostgreSQL with `ltree` extension support via Docker Compose
-- **Design System**: *Lenta Admin System* Olive Gold palette (`#c9cd58`), Dark Charcoal surfaces (`#121414`), Inter UI typography, and JetBrains Mono metadata/code typography.
+1. **Curator Personas & Domain Specialization**:
+   - Individual AI curators act as dedicated domain experts (e.g. domestic analysis, international geopolitics, economic trends, culture/science).
+   - Notes are tagged with `curator` and `persona` metadata to establish perspective and voice.
+2. **Multi-Agent Collaboration & Cross-Analysis**:
+   - Curators debate and contrast viewpoints across events and breaking news.
+   - Cross-analysis calculates a mathematical **Resonance Score (0–100%)** representing conceptual overlap and conflict between distinct contours.
+3. **Breaking News Ingestion & Synthesis (`DONE` Notes)**:
+   - High-resonance note clusters are synthesized into unified `DONE` notes (Case-Based Memory) with full citations and action items.
+4. **Public & Collaborative Hub**:
+   - Serves as the public-facing knowledge base where curated streams, live feeds, and AI synthesis are published and shared.
+
+---
+
+## 🏛️ Architecture Overview
+
+```
+                      ┌────────────────────────┐
+                      │  Breaking News Feeds   │
+                      │  (RSS / Webhooks / API)│
+                      └───────────┬────────────┘
+                                  ▼
+                      ┌────────────────────────┐
+                      │    Ingestion Engine    │
+                      └───────────┬────────────┘
+                                  ▼
+           ┌──────────────────────┴──────────────────────┐
+           ▼                                             ▼
+  🇷🇺 Ivan Bely (Internal)                      🌐 Kirk Kitten (Global)
+  - Domestic policy & energy                    - Sanctions & foreign trade
+  - Local market trends                         - Geopolitical ripple effects
+           │                                             │
+           └──────────────────────┬──────────────────────┘
+                                  ▼
+                      ┌────────────────────────┐
+                      │ Cross-Analysis & Math  │
+                      │ Resonance Scoring (0-100)
+                      └───────────┬────────────┘
+                                  ▼
+                      ┌────────────────────────┐
+                      │ Synthesis: DONE Note   │
+                      │ (Obsidian + DB Store)  │
+                      └────────────────────────┘
+```
+
+---
+
+## 📦 Monorepo Packages & Applications
+
+- **`apps/backend`**: Nest.js 10 backend with PostgreSQL (`ltree`), Prisma ORM, Political & Holiday Ingestion engines, AI parser, and resonance calculation services.
+- **`apps/calendar-app`**: React 18 + Vite chronological timeline and calendar app featuring Curator Lens filtering, resonance indicators, and synthesis workflows.
+- **`apps/admin-cms`**: React + Ant Design CMS for managing feeds, taxonomy paths, curation personas, and system telemetry.
+- **`packages/shared`**: Universal TypeScript schemas, curator constants, frontmatter utilities, and DTOs.
+- **`packages/obsidian-plugin`**: Svelte 4 Obsidian sync plugin that reads/writes curator frontmatter (`curator`, `persona`, `resonance_score`, `assistants`) and maintains container vault synchronicity.
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Start PostgreSQL Database (Docker)
-```bash
-docker compose up -d
-```
-*PostgreSQL is exposed on port `5433` (configurable via `.env`).*
+### 1. Prerequisites
+- Node.js >= 20
+- pnpm >= 9
+- Docker & Docker Compose
 
-### 2. Backend Setup & Migrations
+### 2. Start PostgreSQL Database
 ```bash
-cd backend
-npm install
-npx prisma migrate dev --name init
-npm run prisma:seed
-npm run start:dev
+pnpm run db:up
 ```
-- **Backend API**: [http://localhost:3001](http://localhost:3001)
-- **Swagger Documentation**: [http://localhost:3001/api/docs](http://localhost:3001/api/docs)
 
-### 3. Frontend Setup (React Admin CMS)
+### 3. Install Dependencies & Build
 ```bash
-cd ../frontend
-npm install
-npm run dev
+pnpm install
+pnpm run build
 ```
-- **Admin CMS**: [http://localhost:5173](http://localhost:5173)
+
+### 4. Database Migration & Seed
+```bash
+pnpm run backend:prisma:migrate
+pnpm run backend:prisma:seed
+```
+
+### 5. Start Development Servers
+```bash
+pnpm run dev
+# or start core apps concurrently:
+pnpm run dev:local
+```
+
+- **Calendar & Curator App**: [http://localhost:5173](http://localhost:5173)
+- **Admin CMS**: [http://localhost:5174](http://localhost:5174)
+- **Backend API & Swagger**: [http://localhost:3001/api/docs](http://localhost:3001/api/docs)
 
 ---
 
-## 📐 Data Models & Schema
+## 📖 Deep Dives & Specifications
 
-```prisma
-model Feed {
-  id          String    @id @default(uuid())
-  title       String
-  description String?
-  slug        String    @unique
-  notes       Note[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
-}
-
-model Note {
-  id          String    @id @default(uuid())
-  feedId      String
-  feed        Feed      @relation(fields: [feedId], references: [id])
-  title       String
-  description String?   // Raw Markdown
-  type        NoteType
-  startDate   DateTime
-  endDate     DateTime?
-  sourceLink  String?
-  icon        String?
-  tags        TaxonomyNode[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
-
-  @@index([startDate, endDate])
-  @@index([updatedAt])
-}
-
-model TaxonomyNode {
-  id          String    @id @default(uuid())
-  name        String
-  path        String    @unique // Altered to PostgreSQL ltree in migration
-  notes       Note[]
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime? 
-}
-
-enum NoteType {
-  SINGLE
-  PERIOD
-  EVENT
-  FILM_RELEASE
-  MENTION
-  DONE
-}
-```
-
----
-
-## 🔌 Key API Endpoints
-
-- `GET /feeds` — List active feeds with note count aggregations
-- `POST /feeds` — Create feed with auto-generated slug
-- `DELETE /feeds/:id` — Soft-delete feed
-- `GET /notes` — Query notes with filters (`feedId`, `type`, `startDateFrom`, `startDateTo`, `tagPath`, `search`)
-- `POST /notes` — Create note with Markdown description and taxonomy tags
-- `GET /taxonomy/tree` — Return nested hierarchical taxonomy tree
-- `POST /taxonomy` — Create root or child taxonomy tag
-- `GET /sync/changes?since=<ISO_TIMESTAMP>` — Delta sync pull endpoint for Obsidian offline sync
-
----
-
-## 🎨 Design System & Prototypes
-
-The Admin CMS UI matches the **Lemon Seasons / Lenta Admin System** prototypes:
-- **Feeds**: Bento-ish activity grid + Table mode with hover action bars
-- **Notes**: Data table with NoteType color badges, formatted timestamps, taxonomy path pills, and status indicators
-- **Quick Add**: Modal with NoteType selector, date range pickers, taxonomy Ltree path, and Markdown editor
-- **Taxonomy Tree**: Interactive visual hierarchy with expandable branches and note count pills
+- [Concept: AI Assistants & Cross Analysis Specification](docs/CONCEPT_ASSISTANTS_AND_CROSS_ANALYSIS.md)
+- [Intermediate Architecture & State Document](INTERMEDIATE_DOCUMENT_GEMINI.md)
